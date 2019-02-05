@@ -1,6 +1,7 @@
 # DAEClean 
 Add-on for Blender 2.79
 Clean geometry imported as DAE - Remove doubles, recalculate normals and UV unwrap
+This is usefull if importing models from SketchUp to Blender as DAE
 
 Adds a button to UI menu (Press 'N')
 
