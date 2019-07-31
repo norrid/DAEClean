@@ -7,11 +7,8 @@ bl_info = {
     "name": "DAE Clean",
     "description": "Removes doubles, recalculates normals and UV unwraps all selected objects. Intended for use mainly on imported DAEs but can work on any selected objects",
     "author": "Daniel Norris, DN DRAWINGS <https://dndrawings.com>",
-    "version": (0, 1),
-    "blender": (2, 7, 9),
-    "warning": "",
-    "wiki_url": "",
-    "tracker_url": "",
+    "version": (0, 1, 2),
+    "blender": (2, 80, 0),
     "category": "3D View",
 }
 
@@ -28,29 +25,29 @@ def change_mouse_cursor(func):
 def clean_DAE(self, context):
     orig_verts = 0
     new_verts = 0
-    #count initial amount of verticies
-    if context.selected_objects != []:
-        for obj in context.selected_objects:
-            if obj.type == 'MESH':
-                d = obj.data
-                orig_verts += len(d.vertices)
+
+    if not context.selected_objects:
+        self.report({"INFO"}, "No Objects Selected")
+        return
+
+    selected = [obj for obj in context.selected_objects if obj.type == 'MESH']
+    
+    for obj in selected:
+        orig_verts += len(obj.data.vertices)
 
     #apply transformation - remove doubles and smart project UVs
-    if context.selected_objects != []:
-        for obj in context.selected_objects:
-            if obj.type == 'MESH':
-                context.scene.objects.active = obj
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.select_all(action='SELECT')
-                #Remove Doubles
-                bpy.ops.mesh.remove_doubles()
-                #Recalc normals
-                bpy.ops.mesh.normals_make_consistent(inside=False)
-                #UV Unwrap
-                bpy.ops.uv.smart_project()
-                d = obj.data
-                new_verts += len(d.vertices)
-                bpy.ops.object.editmode_toggle()
+    for obj in selected:
+        context.view_layer.objects.active = obj
+        bpy.ops.object.editmode_toggle()
+        bpy.ops.mesh.select_all(action='SELECT')
+        #Remove Doubles
+        bpy.ops.mesh.remove_doubles()
+        #Recalc normals
+        bpy.ops.mesh.normals_make_consistent(inside=False)
+        #UV Unwrap
+        bpy.ops.uv.smart_project()
+        new_verts += len(obj.data.vertices)
+        bpy.ops.object.editmode_toggle()
     rem_v = orig_verts - new_verts
     self.report({"INFO"}, "Doubles removed:%s" % (rem_v))
 
@@ -77,11 +74,12 @@ class DAECleanOperator(bpy.types.Operator):
 #############################################
 # PANEL
 ############################################
-class CleanDAEPanel(bpy.types.Panel):
-    bl_idname = "panel.clean_DAE_panel"
+class PANEL_PT_CleanDAE(bpy.types.Panel):
+    bl_idname = "PANEL_PT_CleanDAE"
     bl_label = "Clean DAE Model"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
+    bl_category = "DAE Tools"
 
     def draw(self, context):
         layout = self.layout
@@ -98,12 +96,12 @@ class CleanDAEPanel(bpy.types.Panel):
 
 def register():
     bpy.utils.register_class(DAECleanOperator)
-    bpy.utils.register_class(CleanDAEPanel)
+    bpy.utils.register_class(PANEL_PT_CleanDAE)
 
 
 def unregister():
     bpy.utils.unregister_class(DAECleanOperator)
-    bpy.utils.unregister_class(CleanDAEPanel)
+    bpy.utils.unregister_class(PANEL_PT_CleanDAE)
 
 if __name__ == "__main__":
     register()

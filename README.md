@@ -1,5 +1,5 @@
 # DAEClean 
-Add-on for Blender 2.79
+UPDATED *** Add-on for Blender 2.80
 
 Clean geometry imported as DAE - Remove doubles, recalculate normals and UV unwrap
 
