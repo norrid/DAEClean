@@ -13,13 +13,15 @@ bl_info = {
 }
 
 
-#decorator
+# decorator
 def change_mouse_cursor(func):
     def change_cursor(*args):
         bpy.context.window.cursor_modal_set("WAIT")
         func(*args)
         bpy.context.window.cursor_modal_set("DEFAULT")
+
     return change_cursor
+
 
 @change_mouse_cursor
 def clean_DAE(self, context):
@@ -30,30 +32,36 @@ def clean_DAE(self, context):
         self.report({"INFO"}, "No Objects Selected")
         return
 
-    selected = [obj for obj in context.selected_objects if obj.type == 'MESH']
-    
+    selected = [obj for obj in context.selected_objects if obj.type == "MESH"]
+
     for obj in selected:
         orig_verts += len(obj.data.vertices)
+        # must deselect all for uv unwrapping to work
+        obj.select_set(False)
 
-    #apply transformation - remove doubles and smart project UVs
+    # apply transformation - remove doubles and smart project UVs
     for obj in selected:
+        obj.select_set(True)
         context.view_layer.objects.active = obj
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.mesh.select_all(action='SELECT')
-        #Remove Doubles
+        bpy.ops.object.mode_set(mode="EDIT")
+        bpy.ops.mesh.select_all(action="SELECT")
+        # Remove Doubles
         bpy.ops.mesh.remove_doubles()
-        #Recalc normals
+        # Recalc normals
         bpy.ops.mesh.normals_make_consistent(inside=False)
-        #UV Unwrap
+        # UV Unwrap
         bpy.ops.uv.smart_project()
         new_verts += len(obj.data.vertices)
-        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.mode_set(mode="OBJECT")
+        obj.select_set(False)
     rem_v = orig_verts - new_verts
     self.report({"INFO"}, "Doubles removed:%s" % (rem_v))
+
 
 #############################################
 # OPERATOR
 ############################################
+
 
 class DAECleanOperator(bpy.types.Operator):
     """Removes doubles, recalculates normals and UV unwraps all selected objects"""
@@ -65,7 +73,6 @@ class DAECleanOperator(bpy.types.Operator):
     def execute(self, context):
         clean_DAE(self, context)
         return {"FINISHED"}
-
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -84,15 +91,17 @@ class PANEL_PT_CleanDAE(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        #box = layout.box()
+        # box = layout.box()
         row = layout.row(align=True)
         row.alignment = "EXPAND"
-        
+
         row.operator("view3d.modal_operator_dae_clean")
+
 
 #############################################
 # REG/UN_REG
 ############################################
+
 
 def register():
     bpy.utils.register_class(DAECleanOperator)
@@ -102,6 +111,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(DAECleanOperator)
     bpy.utils.unregister_class(PANEL_PT_CleanDAE)
+
 
 if __name__ == "__main__":
     register()
