@@ -49,6 +49,8 @@ def clean_DAE(self, context):
         bpy.ops.mesh.remove_doubles()
         # Recalc normals
         bpy.ops.mesh.normals_make_consistent(inside=False)
+        # Tris To Quads
+        bpy.ops.mesh.tris_convert_to_quads()
         # UV Unwrap
         bpy.ops.uv.smart_project()
         new_verts += len(obj.data.vertices)
