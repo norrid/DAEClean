@@ -51,6 +51,8 @@ def clean_DAE(self, context):
         bpy.ops.mesh.normals_make_consistent(inside=False)
         # Tris To Quads
         bpy.ops.mesh.tris_convert_to_quads()
+        # Limited Dissolve
+        bpy.ops.mesh.dissolve_limited()
         # UV Unwrap
         bpy.ops.uv.smart_project()
         new_verts += len(obj.data.vertices)
@@ -63,8 +65,6 @@ def clean_DAE(self, context):
 #############################################
 # OPERATOR
 ############################################
-
-
 class DAECleanOperator(bpy.types.Operator):
     """Removes doubles, recalculates normals and UV unwraps all selected objects"""
 
