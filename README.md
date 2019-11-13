@@ -1,7 +1,8 @@
 # DAEClean 
-UPDATED *** Add-on for Blender 2.80
+Add-on for Blender 2.80
 
 Clean geometry imported as DAE - Remove doubles, recalculate normals, triangles to quads, limitied dissolve and UV unwrap
+Will also re-join loose geometry and remove imported cameras 
 
 This is useful if importing models from SketchUp to Blender as DAE
 
@@ -19,4 +20,4 @@ Usage:
 
 1. Select objects to clean in scene
 2. Press Clean DAE button
-3. The Info bar at the top of the Blender window will show how many vertices have been reduce from the selected objects 
+3. The Status/Info bar in the Blender window will show how many vertices have been reduced from the selected objects 
