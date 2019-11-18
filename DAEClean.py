@@ -139,6 +139,9 @@ def clean_DAE(self, context):
     b_delc = context.scene.dc_settings.dc_camera_del_bool
     f_rdtol = context.scene.dc_settings.dc_rem_d_tol_float
 
+    if context.mode == "EDIT_MESH":
+        bpy.ops.object.mode_set(mode="OBJECT")
+
     if not context.selected_objects:
         self.report({"INFO"}, "No Objects Selected")
         return
