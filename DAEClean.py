@@ -234,7 +234,7 @@ class PANEL_PT_CleanDAE(bpy.types.Panel):
 
         row = box.row()
         row.prop(
-            context.scene.dc_settings, "dc_limited_disolve_bool", text="Limited Disolve"
+            context.scene.dc_settings, "dc_limited_disolve_bool", text="Limited Dissolve"
         )
         row.prop(context.scene.dc_settings,
                  "dc_tri_quad_bool", text="Tris To Quads")
@@ -263,7 +263,7 @@ class PANEL_PT_CleanDAE(bpy.types.Panel):
 ############################################
 class DCSettings(bpy.types.PropertyGroup):
     dc_limited_disolve_bool: BoolProperty(
-        name="", description="Limited Disolve Active", default=False
+        name="", description="Limited Dissolve Active", default=False
     )
 
     dc_tri_quad_bool: BoolProperty(
