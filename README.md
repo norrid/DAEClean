@@ -8,7 +8,7 @@ This is useful if importing models from SketchUp to Blender as DAE
 
 Adds a button to UI menu (Press 'N')
 
-A full tutorial on importing a .dae file export SketchUp into Blender can be found at https://dndrawings.com/blog/ 
+A full tutorial on importing a .dae file export SketchUp into Blender can be found at https://www.dndrawings.com/add-ons
 
 Install:
 1. Navigate to File->User Preferences->Add-ons 
