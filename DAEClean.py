@@ -29,7 +29,7 @@ bl_info = {
     "name": "DAE Clean",
     "description": "Removes doubles, recalculates normals, UV unwraps and other operations to clean imported mesh. Intended for use mainly on imported DAEs but can work on any selected objects",
     "author": "Daniel Norris, DN DRAWINGS <https://dndrawings.com>",
-    "version": (0, 1, 3),
+    "version": (0, 1, 4),
     "blender": (2, 80, 0),
     "category": "3D View",
 }
@@ -112,6 +112,7 @@ def remove_doubles(selected, tolernace):
         bm.clear()
     bm.free()
 
+
 def deselect_all(context):
     for obj in context.selected_objects:
         obj.select_set(False)
@@ -166,7 +167,10 @@ def clean_DAE(self, context):
     if b_remd:
         remove_doubles(selected, f_rdtol)
 
-    # apply transformations
+    # deselect all
+    deselect_all(context)
+
+    # apply transformations to individual objects
     for obj in selected:
         obj.select_set(True)
         context.view_layer.objects.active = obj
@@ -184,9 +188,7 @@ def clean_DAE(self, context):
         bpy.ops.uv.smart_project()
         new_verts += len(obj.data.vertices)
         bpy.ops.object.mode_set(mode="OBJECT")
-
-    # deselect all
-    deselect_all(context)
+        obj.select_set(False)
 
     if b_delc:
         bpy.ops.object.delete({"selected_objects": cams})
