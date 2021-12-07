@@ -1,5 +1,5 @@
 # DAEClean 
-Add-on for Blender 2.80
+Add-on for Blender 2.80, 2.9 and 3.0
 
 Clean geometry imported as DAE - Remove doubles, recalculate normals, triangles to quads, limitied dissolve and UV unwrap
 Will also re-join loose geometry and remove imported cameras 
