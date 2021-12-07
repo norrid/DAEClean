@@ -29,7 +29,7 @@ bl_info = {
     "name": "DAE Clean",
     "description": "Removes doubles, recalculates normals, UV unwraps and other operations to clean imported mesh. Intended for use mainly on imported DAEs but can work on any selected objects",
     "author": "Daniel Norris, DN DRAWINGS <https://dndrawings.com>",
-    "version": (0, 1, 4),
+    "version": (0, 1, 5),
     "blender": (2, 80, 0),
     "category": "3D View",
 }
@@ -176,17 +176,20 @@ def clean_DAE(self, context):
         context.view_layer.objects.active = obj
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.select_all(action="SELECT")
-        # Recalc normals
-        bpy.ops.mesh.normals_make_consistent(inside=False)
-        # Tris To Quads
-        if b_triq:
-            bpy.ops.mesh.tris_convert_to_quads()
-        # Limited Dissolve
-        if b_limd:
-            bpy.ops.mesh.dissolve_limited()
-        # UV Unwrap
-        bpy.ops.uv.smart_project()
-        new_verts += len(obj.data.vertices)
+        try:
+            # Recalc normals
+            bpy.ops.mesh.normals_make_consistent(inside=False)
+            # Tris To Quads
+            if b_triq:
+                bpy.ops.mesh.tris_convert_to_quads()
+            # Limited Dissolve
+            if b_limd:
+                bpy.ops.mesh.dissolve_limited()
+            # UV Unwrap
+            bpy.ops.uv.smart_project()
+            new_verts += len(obj.data.vertices)
+        except:
+            print("Unable to clear object: " + obj.name)
         bpy.ops.object.mode_set(mode="OBJECT")
         obj.select_set(False)
 
