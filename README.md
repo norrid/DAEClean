@@ -10,10 +10,14 @@ Adds a button to UI menu (Press 'N')
 
 A full tutorial on importing a .dae file export SketchUp into Blender can be found at https://www.dndrawings.com/add-ons
 
+Download:
+1. Click the green Code button and Download .zip
+2. Unzip the downloaded file (you should see a folder containing DAEClean_0_1_#.zip, DAEClean.py and Readme.md
+
 Install:
 1. Navigate to File->User Preferences->Add-ons 
 2. Click "Install Add-on From File"
-3. Find DAEClean.py or DAEClean_2_8.zip and "Click Install Add-on From File"
+3. Find DAEClean.py or DAEClean_0_1_#.zip and "Click Install Add-on From File"
 4. Search for 3D View:DAE Clean and toggle check box
 5. Click "Save User Settings"
 
