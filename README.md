@@ -1,8 +1,8 @@
 # DAEClean 
-Add-on for Blender 2.80, 2.9 and 3.0
+Add-on for Blender 2.80, 2.9, 3.0 & 4.0
 
 Clean geometry imported as DAE - Remove doubles, recalculate normals, triangles to quads, limitied dissolve and UV unwrap
-Will also re-join loose geometry and remove imported cameras 
+Will also re-join loose geometry and remove imported cameras. Version 1.6 added the option to remove auto-smoothing of normals
 
 This is useful if importing models from SketchUp to Blender as DAE
 

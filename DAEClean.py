@@ -26,10 +26,10 @@ import bmesh
 from bpy.props import BoolProperty, FloatProperty
 
 bl_info = {
-    "name": "DAE Clean",
+    "name": "DAEClean",
     "description": "Removes doubles, recalculates normals, UV unwraps and other operations to clean imported mesh. Intended for use mainly on imported DAEs but can work on any selected objects",
     "author": "Daniel Norris, DN DRAWINGS <https://dndrawings.com>",
-    "version": (0, 1, 5),
+    "version": (0, 1, 6),
     "blender": (2, 80, 0),
     "category": "3D View",
 }
@@ -43,6 +43,10 @@ def change_mouse_cursor(func):
         bpy.context.window.cursor_modal_set("DEFAULT")
 
     return change_cursor
+
+
+def clean_up():
+    bpy.context.window.cursor_modal_set("DEFAULT")
 
 
 def join_loose_faces(context, selected):
@@ -112,6 +116,9 @@ def remove_doubles(selected, tolernace):
         bm.clear()
     bm.free()
 
+def select_objects(objects):
+    for obj in objects:
+        obj.select_set(True)
 
 def deselect_all(context):
     for obj in context.selected_objects:
@@ -139,6 +146,7 @@ def clean_DAE(self, context):
     b_joinl = context.scene.dc_settings.dc_loose_face_bool
     b_delc = context.scene.dc_settings.dc_camera_del_bool
     f_rdtol = context.scene.dc_settings.dc_rem_d_tol_float
+    b_auto_smt = context.scene.dc_settings.dc_rem_auto_smooth_norms_bool
 
     if context.mode == "EDIT_MESH":
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -185,20 +193,25 @@ def clean_DAE(self, context):
             # Limited Dissolve
             if b_limd:
                 bpy.ops.mesh.dissolve_limited()
+            # Auto-smooth normals
+            if b_auto_smt:
+                obj.data.use_auto_smooth = False
             # UV Unwrap
             bpy.ops.uv.smart_project()
             new_verts += len(obj.data.vertices)
-        except:
+        except Exception as e:
+            print(e)
             print("Unable to clear object: " + obj.name)
         bpy.ops.object.mode_set(mode="OBJECT")
         obj.select_set(False)
 
     if b_delc:
-        bpy.ops.object.delete({"selected_objects": cams})
+        select_objects(cams)
+        bpy.ops.object.delete()
 
+    deselect_all(context)
     rem_v = orig_verts - new_verts
     self.report({"INFO"}, "Doubles removed:%s" % (rem_v))
-
 
 #############################################
 # OPERATOR
@@ -211,7 +224,11 @@ class DAECleanOperator(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
 
     def execute(self, context):
-        clean_DAE(self, context)
+        try:
+            clean_DAE(self, context)
+        except Exception as e:
+            print(e)
+            clean_up()
         return {"FINISHED"}
 
     def invoke(self, context, event):
@@ -262,6 +279,14 @@ class PANEL_PT_CleanDAE(bpy.types.Panel):
             context.scene.dc_settings, "dc_camera_del_bool", text="Remove Cameras"
         )
 
+        row = box.row()
+        row.prop(
+            context.scene.dc_settings, "dc_rem_auto_smooth_norms_bool", text="Remove Auto-Smooth Normals"
+        )
+
+
+        
+
 
 #############################################
 # PROPERTIES
@@ -289,6 +314,10 @@ class DCSettings(bpy.types.PropertyGroup):
 
     dc_rem_d_tol_float: FloatProperty(
         name="", description="Remove Doubles Tolerance", default=0.001
+    )
+
+    dc_rem_auto_smooth_norms_bool: BoolProperty(
+        name="", description="Remove Auto-smoothing of normals", default=True
     )
 
 
