@@ -26,6 +26,18 @@ import bmesh  # type: ignore
 from bpy.props import BoolProperty, FloatProperty  # type: ignore
 
 
+l_disolve_setting = {
+    "normal": 'NORMAL',
+    "material": 'MATERIAL'
+
+}
+
+def return_l_dissolve_setting(dissolve_by_material: bool):
+    if dissolve_by_material:
+        return l_disolve_setting["material"]
+    return l_disolve_setting["normal"]
+
+
 # decorator
 def change_mouse_cursor(func):
     def change_cursor(*args):
@@ -34,6 +46,7 @@ def change_mouse_cursor(func):
         bpy.context.window.cursor_modal_set("DEFAULT")
 
     return change_cursor
+
 
 def clean_up():
     bpy.context.window.cursor_modal_set("DEFAULT")
@@ -106,9 +119,19 @@ def remove_doubles(selected, tolernace):
         bm.clear()
     bm.free()
 
+
+def apply_transforms(selected, context: bpy.context):
+    for obj in selected:
+        obj.select_set(True)
+        context.view_layer.objects.active = obj
+        bpy.ops.object.transform_apply()
+        obj.select_set(False)
+
+
 def select_objects(objects):
     for obj in objects:
         obj.select_set(True)
+
 
 def deselect_all(context):
     for obj in context.selected_objects:
@@ -132,11 +155,14 @@ def clean_DAE(self, context):
 
     b_remd = context.scene.dc_settings.dc_rem_doubles_bool
     b_limd = context.scene.dc_settings.dc_limited_disolve_bool
+    b_limd_mat = context.scene.dc_settings.dc_limited_disolve_material_bool
     b_triq = context.scene.dc_settings.dc_tri_quad_bool
     b_joinl = context.scene.dc_settings.dc_loose_face_bool
     b_delc = context.scene.dc_settings.dc_camera_del_bool
     f_rdtol = context.scene.dc_settings.dc_rem_d_tol_float
     b_auto_smt = context.scene.dc_settings.dc_rem_auto_smooth_norms_bool
+    b_rem_csn = context.scene.dc_settings.dc_rem_custom_split_normals
+    b_apl_trans = context.scene.dc_settings.dc_apply_transforms
 
     if context.mode == "EDIT_MESH":
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -165,6 +191,10 @@ def clean_DAE(self, context):
     if b_remd:
         remove_doubles(selected, f_rdtol)
 
+    # Apply all transforms
+    if b_apl_trans:
+        apply_transforms(selected, context)
+
     # deselect all
     deselect_all(context)
 
@@ -172,31 +202,37 @@ def clean_DAE(self, context):
     for obj in selected:
         obj.select_set(True)
         context.view_layer.objects.active = obj
+
+        # Mesh Clean
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.select_all(action="SELECT")
         try:
-            # Recalc normals
-            # TODO: Do this at the end*****
-            bpy.ops.mesh.normals_make_consistent(inside=False)
-            
-            
-            
             # Tris To Quads
             if b_triq:
                 bpy.ops.mesh.tris_convert_to_quads()
             # Limited Dissolve
             if b_limd:
-                bpy.ops.mesh.dissolve_limited()
-            # Auto-smooth normals
-            if b_auto_smt:
-                obj.data.use_auto_smooth = False
+                bpy.ops.mesh.dissolve_limited(delimit={return_l_dissolve_setting(b_limd_mat)})
+            # Clear custom split normals
+            if b_rem_csn:
+                bpy.ops.mesh.customdata_custom_splitnormals_clear()
             # UV Unwrap
             bpy.ops.uv.smart_project()
+            # Recalc normals
+            bpy.ops.mesh.normals_make_consistent(inside=False)
+
             new_verts += len(obj.data.vertices)
         except Exception as e:
             print(e)
-            print("Unable to clear object: " + obj.name)
+            print("Unable to clean object: " + obj.name)
+
+        # Switch back to Object mode
         bpy.ops.object.mode_set(mode="OBJECT")
+
+        # Auto-smooth normals
+        if b_auto_smt:
+            bpy.ops.object.shade_auto_smooth(use_auto_smooth=False)
+
         obj.select_set(False)
 
     if b_delc:
@@ -243,15 +279,11 @@ class PANEL_PT_CleanDAE(bpy.types.Panel):
         layout = self.layout
 
         box = layout.box()
+        box.label(text="Clean Mesh:")
         row = layout.row(align=True)
         row.alignment = "EXPAND"
 
-        row.operator("view3d.modal_operator_dae_clean")
-
         row = box.row()
-        row.prop(
-            context.scene.dc_settings, "dc_limited_disolve_bool", text="Limited Dissolve"
-        )
         row.prop(context.scene.dc_settings,
                  "dc_tri_quad_bool", text="Tris To Quads")
 
@@ -278,14 +310,47 @@ class PANEL_PT_CleanDAE(bpy.types.Panel):
             context.scene.dc_settings, "dc_rem_auto_smooth_norms_bool", text="Remove Auto-Smooth Normals"
         )
 
+        row = box.row()
+        row.prop(
+            context.scene.dc_settings, "dc_rem_custom_split_normals", text="Clear Custom Split Normals"
+        )
+
+        row = box.row()
+        row.prop(
+            context.scene.dc_settings, "dc_apply_transforms", text="Apply All Transforms"
+        )
+
+        box = layout.box()
+        box.label(text="Limited Dissolve:")
+        box.prop(
+            context.scene.dc_settings, "dc_limited_disolve_bool", text="Limited Dissolve"
+        )
+
+        sub = box.row()
+        sub.prop(
+            context.scene.dc_settings, "dc_limited_disolve_material_bool", text="Limited Dissolve By Material"
+        )
+        sub.enabled = context.scene.dc_settings.dc_limited_disolve_bool
+
+        # Execute Button
+        box = layout.box()
+        row = box.row()
+        row.operator("view3d.modal_operator_dae_clean")
+
+
 
 #############################################
 # PROPERTIES
 ############################################
 class DCSettings(bpy.types.PropertyGroup):
     dc_limited_disolve_bool: BoolProperty(
-        name="", description="Limited Dissolve Active", default=False
+        name="", description="Limited Dissolve Mesh", default=False
     )
+
+    dc_limited_disolve_material_bool: BoolProperty(
+        name="", description="Limited Dissolve By Material", default=False
+    )
+
 
     dc_tri_quad_bool: BoolProperty(
         name="", description="Tris To Quads Active", default=True
@@ -309,4 +374,12 @@ class DCSettings(bpy.types.PropertyGroup):
 
     dc_rem_auto_smooth_norms_bool: BoolProperty(
         name="", description="Remove Auto-smoothing of normals", default=True
+    )
+
+    dc_rem_custom_split_normals: BoolProperty(
+        name="", description="Clear Custom Split Normals", default=True
+    )
+
+    dc_apply_transforms: BoolProperty(
+        name="", description="Apply All Transforms", default=True
     )
