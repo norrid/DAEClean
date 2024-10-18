@@ -29,10 +29,13 @@ bl_info = {
     "name": "DAEClean",
     "description": "Removes doubles, recalculates normals, UV unwraps and other operations to clean imported mesh. Intended for use mainly on imported DAEs but can work on any selected objects",
     "author": "Daniel Norris, DN DRAWINGS <https://dndrawings.com>",
-    "version": (0, 1, 6),
+    "version": (0, 1, 7),
     "blender": (2, 80, 0),
     "category": "3D View",
 }
+
+
+# TODO: NEXT*** Turn into a proper package to allow for full debug in blender -> can't currently install from here. Will need to add .zip release?
 
 
 # decorator
@@ -186,7 +189,11 @@ def clean_DAE(self, context):
         bpy.ops.mesh.select_all(action="SELECT")
         try:
             # Recalc normals
+            # TODO: Do this at the end*****
             bpy.ops.mesh.normals_make_consistent(inside=False)
+            
+            
+            
             # Tris To Quads
             if b_triq:
                 bpy.ops.mesh.tris_convert_to_quads()
