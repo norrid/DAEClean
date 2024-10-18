@@ -20,22 +20,10 @@
 # License:             GPL
 # Authors:             Daniel Norris, DN Drawings
 
-import bpy
-import bmesh
+import bpy  # type: ignore
+import bmesh  # type: ignore
 
-from bpy.props import BoolProperty, FloatProperty
-
-bl_info = {
-    "name": "DAEClean",
-    "description": "Removes doubles, recalculates normals, UV unwraps and other operations to clean imported mesh. Intended for use mainly on imported DAEs but can work on any selected objects",
-    "author": "Daniel Norris, DN DRAWINGS <https://dndrawings.com>",
-    "version": (0, 1, 7),
-    "blender": (2, 80, 0),
-    "category": "3D View",
-}
-
-
-# TODO: NEXT*** Turn into a proper package to allow for full debug in blender -> can't currently install from here. Will need to add .zip release?
+from bpy.props import BoolProperty, FloatProperty  # type: ignore
 
 
 # decorator
@@ -46,7 +34,6 @@ def change_mouse_cursor(func):
         bpy.context.window.cursor_modal_set("DEFAULT")
 
     return change_cursor
-
 
 def clean_up():
     bpy.context.window.cursor_modal_set("DEFAULT")
@@ -223,7 +210,7 @@ def clean_DAE(self, context):
 #############################################
 # OPERATOR
 ############################################
-class DAECleanOperator(bpy.types.Operator):
+class VIEW_OT_DAEClean(bpy.types.Operator):
     """Removes doubles, recalculates normals and UV unwraps all selected objects"""
 
     bl_idname = "view3d.modal_operator_dae_clean"
@@ -292,9 +279,6 @@ class PANEL_PT_CleanDAE(bpy.types.Panel):
         )
 
 
-        
-
-
 #############################################
 # PROPERTIES
 ############################################
@@ -326,30 +310,3 @@ class DCSettings(bpy.types.PropertyGroup):
     dc_rem_auto_smooth_norms_bool: BoolProperty(
         name="", description="Remove Auto-smoothing of normals", default=True
     )
-
-
-#############################################
-# REG/UN_REG
-############################################
-classes = (DAECleanOperator, PANEL_PT_CleanDAE, DCSettings)
-
-
-def register():
-    from bpy.utils import register_class
-    for cls in classes:
-        register_class(cls)
-
-    bpy.types.Scene.dc_settings = bpy.props.PointerProperty(type=DCSettings)
-
-
-def unregister():
-    from bpy.utils import unregister_class
-    for cls in reversed(classes):
-        try:
-            unregister_class(cls)
-        except RuntimeError:
-            pass
-
-
-if __name__ == "__main__":
-    register()
